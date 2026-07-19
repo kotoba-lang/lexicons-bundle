@@ -3,6 +3,7 @@
                               "<owner-repo>/data/lex/*.edn"
                               "<owner-repo>/lex/*.edn"]
  :wire-output-precedence ["<owner-repo>/wire/lex/<record-name>.json"
+                          "<owner-repo>/wire/lexicons/<record-name>.json"
                           "<owner-repo>/lexicons/<nsid-path>.json"]
  :command "bb scripts/project-edn-lexicons.clj --repo <owner-repo>"
  :freshness-command "bb scripts/project-edn-lexicons.clj --repo <owner-repo> --check"
