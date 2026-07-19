@@ -5,24 +5,53 @@
             [cheshire.core :as json]
             [clojure.edn :as edn]))
 
-(defn doc-id [doc] (or (:id doc) (get doc "id")))
+(defn datom-id-candidates [datoms]
+  (->> datoms
+       (mapcat (fn [datom]
+                 (when-not (map? datom)
+                   (throw (ex-info "datom vector entries must be maps"
+                                   {:entry datom})))
+                 (for [[attribute value] datom
+                       :when (and (keyword? attribute)
+                                  (namespace attribute)
+                                  (= "id" (name attribute))
+                                  (string? value))]
+                   value)))
+       distinct
+       sort
+       vec))
+
+(defn doc-id [doc]
+  (if (vector? doc)
+    (let [candidates (datom-id-candidates doc)]
+      (case (count candidates)
+        1 (first candidates)
+        0 (throw (ex-info "datom vector has no namespaced */id string value"
+                          {:candidates candidates}))
+        (throw (ex-info "datom vector has ambiguous namespaced */id string values"
+                        {:candidates candidates}))))
+    ;; Map documents retain their established unqualified keyword/string lookup.
+    (or (:id doc) (get doc "id"))))
 
 (defn contract-source? [repo source]
   (= (fs/canonicalize (fs/parent source))
      (fs/canonicalize (fs/path repo "contracts/lexicons"))))
 
 (defn target-for [repo source doc]
-  (let [parts (.split ^String (doc-id doc) "\\.")]
-    (cond
-      (contract-source? repo source)
-      (str (fs/path repo "wire/contracts/lexicons" (str (last parts) ".json")))
-      (fs/directory? (fs/path repo "wire/lex"))
-      (str (fs/path repo "wire/lex" (str (last parts) ".json")))
-      (fs/directory? (fs/path repo "wire/lexicons"))
-      (str (fs/path repo "wire/lexicons" (str (last parts) ".json")))
-      :else
-      (str (fs/path repo "lexicons" (apply fs/path (butlast parts))
-                    (str (last parts) ".json"))))))
+  (let [id (doc-id doc)]
+    (when-not (string? id)
+      (throw (ex-info "lexicon document has no string id" {:document doc})))
+    (let [parts (.split ^String id "\\.")]
+      (cond
+        (contract-source? repo source)
+        (str (fs/path repo "wire/contracts/lexicons" (str (last parts) ".json")))
+        (fs/directory? (fs/path repo "wire/lex"))
+        (str (fs/path repo "wire/lex" (str (last parts) ".json")))
+        (fs/directory? (fs/path repo "wire/lexicons"))
+        (str (fs/path repo "wire/lexicons" (str (last parts) ".json")))
+        :else
+        (str (fs/path repo "lexicons" (apply fs/path (butlast parts))
+                      (str (last parts) ".json")))))))
 
 (defn sources [repo]
   (let [wire (sort (fs/glob (fs/path repo "data/lex") "*.wire.edn"))]
