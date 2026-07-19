@@ -9,8 +9,12 @@
 
 (defn target-for [repo doc]
   (let [parts (.split ^String (doc-id doc) "\\.")]
-    (if (fs/directory? (fs/path repo "wire/lex"))
+    (cond
+      (fs/directory? (fs/path repo "wire/lex"))
       (str (fs/path repo "wire/lex" (str (last parts) ".json")))
+      (fs/directory? (fs/path repo "wire/lexicons"))
+      (str (fs/path repo "wire/lexicons" (str (last parts) ".json")))
+      :else
       (str (fs/path repo "lexicons" (apply fs/path (butlast parts))
                     (str (last parts) ".json"))))))
 
