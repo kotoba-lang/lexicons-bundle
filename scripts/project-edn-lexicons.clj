@@ -54,16 +54,11 @@
                       (str (last parts) ".json")))))))
 
 (defn sources [repo]
-  (let [wire (sort (fs/glob (fs/path repo "data/lex") "*.wire.edn"))]
-    (if (seq wire)
-      wire
-      (let [data (sort (fs/glob (fs/path repo "data/lex") "*.edn"))]
-        (if (seq data)
-          data
-          (let [lex (sort (fs/glob (fs/path repo "lex") "*.edn"))]
-            (if (seq lex)
-              lex
-              (sort (fs/glob (fs/path repo "contracts/lexicons") "*.edn")))))))))
+  (or (seq (sort (fs/glob (fs/path repo "data/lex") "*.wire.edn")))
+      (seq (sort (fs/glob (fs/path repo "data/lex") "*.edn")))
+      (seq (sort (fs/glob (fs/path repo "lex") "*.edn")))
+      (seq (sort (fs/glob (fs/path repo "contracts/lexicons") "*.edn")))
+      (sort (fs/glob (fs/path repo "schema/lex") "*.edn"))))
 
 (defn outputs [repo]
   (for [source (sources repo)
@@ -81,7 +76,7 @@
                            (not= (:body %) (slurp (:target %)))) rows)]
     (when (empty? rows)
       (binding [*out* *err*]
-        (println "no canonical EDN lexicon inputs (data/lex, lex, or contracts/lexicons):" repo))
+        (println "no canonical EDN lexicon inputs (data/lex, lex, contracts/lexicons, or schema/lex):" repo))
       (System/exit 2))
     (if check
       (when (seq stale)
