@@ -26,6 +26,21 @@ test ! -e "$tmp/map/wire/lexicons/lex.json" || fail "lex improperly outranked da
 test ! -e "$tmp/map/wire/contracts/lexicons/contract.json" || fail "contract improperly outranked data/lex"
 bb "$generator" --repo "$tmp/map" --check >/dev/null || fail "map check"
 
+# schema/lex is a legitimate fallback boundary, but never outranks established
+# canonical source locations. With no wire directory it uses the NSID path.
+mkdir -p "$tmp/schema-only/schema/lex"
+printf '{:id "com.etzhayyim.fixture.schema" :lexicon 1}\n' > "$tmp/schema-only/schema/lex/schema.edn"
+bb "$generator" --repo "$tmp/schema-only" >/dev/null
+test -f "$tmp/schema-only/lexicons/com/etzhayyim/fixture/schema.json" || fail "schema/lex target"
+bb "$generator" --repo "$tmp/schema-only" --check >/dev/null || fail "schema/lex check"
+
+mkdir -p "$tmp/schema-precedence/contracts/lexicons" "$tmp/schema-precedence/schema/lex"
+printf '{:id "com.etzhayyim.fixture.contract-first" :lexicon 1}\n' > "$tmp/schema-precedence/contracts/lexicons/contract.edn"
+printf '{:id "com.etzhayyim.fixture.schema-second" :lexicon 1}\n' > "$tmp/schema-precedence/schema/lex/schema.edn"
+bb "$generator" --repo "$tmp/schema-precedence" >/dev/null
+test -f "$tmp/schema-precedence/wire/contracts/lexicons/contract-first.json" || fail "contract precedence over schema/lex"
+test ! -e "$tmp/schema-precedence/lexicons/com/etzhayyim/fixture/schema-second.json" || fail "schema/lex improperly outranked contracts"
+
 # A .wire.edn source outranks ordinary data/lex EDN.
 printf '{"id" "com.etzhayyim.fixture.wire" "lexicon" 1}\n' > "$tmp/map/data/lex/wire.wire.edn"
 bb "$generator" --repo "$tmp/map" >/dev/null
