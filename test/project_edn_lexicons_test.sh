@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-generator="$(cd "$(dirname "$0")/.." && pwd)/scripts/project-edn-lexicons.clj"
+generator="$(cd "$(dirname "$0")/.." && pwd)/scripts/project-edn-lexicons.cljk"
 fixtures="$(cd "$(dirname "$0")" && pwd)/fixtures"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
