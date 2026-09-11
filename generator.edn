@@ -10,7 +10,7 @@
  :wire-output-precedence ["<owner-repo>/wire/lex/<record-name>.json"
                           "<owner-repo>/wire/lexicons/<record-name>.json"
                           "<owner-repo>/lexicons/<nsid-path>.json"]
- :command "bb scripts/project-edn-lexicons.cljk --repo <owner-repo>"
- :freshness-command "bb scripts/project-edn-lexicons.cljk --repo <owner-repo> --check"
+ :command "kbb scripts/project-edn-lexicons.cljk --repo <owner-repo>"
+ :freshness-command "kbb scripts/project-edn-lexicons.cljk --repo <owner-repo> --check"
  :test-command "test/project_edn_lexicons_test.sh"
  :properties [:deterministic :edn-canonical :flat-owner-output]}

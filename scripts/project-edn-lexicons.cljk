@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 (ns project-edn-lexicons
   (:require [babashka.cli :as cli]
             [babashka.fs :as fs]
